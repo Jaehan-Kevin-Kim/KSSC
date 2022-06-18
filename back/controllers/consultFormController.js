@@ -36,6 +36,10 @@ const getForm = async (req, res) => {
 const updateForm = async (req, res) => {
   const id = req.params.id;
   try {
+    // if (!req.user){
+    //   res.status(401);
+
+    // }
     const updatedConsultForm = await ConsultForm.findByIdAndUpdate(
       id,
       req.body,

@@ -7,10 +7,16 @@ const {
   updateForm,
   deleteForm,
 } = require("../controllers/consultFormController");
+const { auth } = require("../middlewares/authMiddleware");
 
-router.route("/").get(getForms).post(postForm);
+router.route("/").get(auth, getForms).post(auth, postForm);
+// router.route("/all").get(auth, get);
 
-router.route("/:id").get(getForm).put(updateForm).delete(deleteForm);
+router
+  .route("/:id")
+  .get(auth, getForm)
+  .put(auth, updateForm)
+  .delete(auth, deleteForm);
 
 // router.get("/", (req, res) => {
 //   res.json("Post: Yes");
