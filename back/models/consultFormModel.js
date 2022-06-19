@@ -31,7 +31,7 @@ const consultFormSchema = mongoose.Schema(
     registerDateAndTime: { type: Date, required: true },
     servicePath: String,
     memo: String,
-    file: String,
+    // file: String,
   },
   {
     timestamps: true,

@@ -1,13 +1,55 @@
-import React from "react";
+import ReactDOM from "react-dom";
+import React, { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import styled from "@emotion/styled";
 import { Row, Col } from "antd";
+import { css, cx } from "@emotion/css";
+// import { css, jsx } from "@emotion/react";
+import SignatureCanvas from "react-signature-canvas";
+import Modal, { setAppElement } from "react-modal";
+import { useDispatch } from "react-redux";
+import { createConsultForm } from "../features/consultForm/consultFormSlice";
 
 const InputIndividual = styled.div`
   display: flex;
 `;
 
+const modalStyle = {
+  overlay: {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    // top: 0,
+    // left: 0,
+    // right: 0,
+    // bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.45)",
+    width: "45%",
+    height: "40%",
+  },
+  content: {
+    position: "absolute",
+    top: "40px",
+    left: "40px",
+    right: "40px",
+    bottom: "40px",
+    border: "1px solid #ccc",
+    background: "#fff",
+    overflow: "auto",
+    WebkitOverflowScrolling: "touch",
+    borderRadius: "4px",
+    outline: "none",
+    padding: "20px",
+    width: "100%",
+  },
+};
+
+Modal.setAppElement("#root");
+
 const ConsultForm = () => {
+  const dispatch = useDispatch();
+  const [modalIsOpen, setModalIsOpen] = useState(false);
   const {
     register,
     handleSubmit,
@@ -15,15 +57,137 @@ const ConsultForm = () => {
     formState: { errors },
   } = useForm();
 
+  const [trimmedCoordinatorSigDataUrl, setTrimmedCoordinatorSigDataUrl] =
+    useState(null);
+  const [trimmedClientSigDataUrl, setTrimmedClientSigDataUrl] = useState(null);
+  const [isCoordinatorSigModal, setIsCoordinatorSigModal] = useState(false);
+  const [isClientSigModal, setIsClientSigModal] = useState(false);
+
+  // let sigCanvas = useRef({});
+  let sigCoordinatorCanvas = useRef({});
+  let sigClientCanvas = useRef({});
+
   const onSubmit = (data) => {
     console.log("submit");
     console.log("data: ", data);
+    dispatch(createConsultForm(data));
     // const { fullName, exampleRequired } = data;
     // console.log(fullName, exampleRequired);
   };
 
+  const clearSigCanvas = (e) => {
+    if (isCoordinatorSigModal) {
+      sigCoordinatorCanvas.current.clear();
+    }
+    if (isClientSigModal) {
+      sigClientCanvas.current.clear();
+    }
+    // sigCanvas.current.clear();
+    console.log(e);
+  };
+
+  const saveSigCanvas = () => {
+    if (isCoordinatorSigModal) {
+      setTrimmedCoordinatorSigDataUrl(
+        sigCoordinatorCanvas.current.getTrimmedCanvas().toDataURL("image/url"),
+      );
+    }
+
+    isClientSigModal &&
+      setTrimmedClientSigDataUrl(
+        sigClientCanvas.current.getTrimmedCanvas().toDataURL("image/url"),
+      );
+    setIsCoordinatorSigModal(false);
+    setIsClientSigModal(false);
+    setModalIsOpen(false);
+  };
+
+  // const saveSigCanvas = (name) => (e) => {
+  //   console.log("saveSigCanvas: ", e);
+  //   console.log("saveSigCanvasNam: ", name);
+  //   console.log("clicked");
+  //   if (name === "coordinatorSig") {
+  //     setTrimmedDataUrl(
+  //       sigCanvas.current.getTrimmedCanvas().toDataURL("image/url"),
+  //     );
+  //   } else {
+  //   }
+  //   setModalIsOpen(false);
+
+  // Save to desktop as a file
+  // const image = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
+  // const link = document.createElement("a");
+  // link.href = image;
+  // link.download = "sign_image.png";
+  // link.click();
+  // setTrimmedDataUrl(() => {
+  //   sigCanvas.current.getTrimmedCanvas().toDataURL("image/url");
+  // });
+  // };
+
   return (
     <>
+      <Modal
+        style={modalStyle}
+        isOpen={modalIsOpen}
+        onRequestClose={() => {
+          console.log("clicked");
+          setModalIsOpen(false);
+        }}>
+        <p>Please sign in here.</p>
+        <div
+          className={css`
+            position: relative;
+            /* width: 300px;
+            height: 400px; */
+            width: 100%;
+            height: 70%;
+            .sigClientCanvas,
+            .sigCoordinatorCanvas {
+              position: absolute;
+              width: 100%;
+              height: 100%;
+            }
+          `}>
+          {isCoordinatorSigModal && (
+            <SignatureCanvas
+              penColor="blue"
+              backgroundColor="lightgray"
+              canvasProps={{
+                /* // width: 400,
+            // height: 200, */
+                /* position: absolute; */
+                className: "sigCoordinatorCanvas",
+              }}
+              ref={sigCoordinatorCanvas}
+            />
+          )}
+          {isClientSigModal && (
+            <SignatureCanvas
+              penColor="blue"
+              backgroundColor="lightgray"
+              canvasProps={{
+                /* // width: 400,
+            // height: 200, */
+                /* position: absolute; */
+                className: "sigClientCanvas",
+              }}
+              ref={sigClientCanvas}
+            />
+          )}
+        </div>
+        <button onClick={clearSigCanvas}>Clear</button>
+        {/* <button onClick={saveSigCanvas("coordinatorSig")}>Save</button> */}
+        <button onClick={saveSigCanvas}>Save</button>
+        <button
+          onClick={() => {
+            setIsCoordinatorSigModal(false);
+            setIsClientSigModal(false);
+            setModalIsOpen(false);
+          }}>
+          Close
+        </button>
+      </Modal>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Row gutter={8}>
           <Col xs={24} md={8}>
@@ -35,15 +199,15 @@ const ConsultForm = () => {
               <input id="clientName" {...register("clientName")} />
             </InputIndividual>
             <InputIndividual>
-              <label htmlFor="dateOfBirth">
+              <label htmlFor="DOB">
                 <p>생년월일</p>
                 <p>Date of Birth (YYYY-MM-DD)</p>
               </label>
-              <div className="dateOfBirth">
+              <div className="DOB">
                 <input
-                  id="dateOfBirth"
+                  id="DOB"
                   type="date"
-                  {...register("dateOfBirth", { valueAsDate: true })}
+                  {...register("DOB", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
@@ -84,7 +248,7 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="maritalStatus">
+              <label htmlFor="marital">
                 <p>혼인여부</p>
                 <p>Marital Status</p>
               </label>
@@ -92,11 +256,11 @@ const ConsultForm = () => {
                 <label htmlFor="single">
                   <input
                     {...register(
-                      "maritalStatus",
+                      "marital",
                       // , { required: true                   }
                     )}
                     type="radio"
-                    name="maritalStatus"
+                    name="marital"
                     value="Single"
                     id="single"
                   />
@@ -105,11 +269,11 @@ const ConsultForm = () => {
                 <label htmlFor="married">
                   <input
                     {...register(
-                      "maritalStatus",
+                      "marital",
                       // , { required: true }
                     )}
                     type="radio"
-                    name="maritalStatus"
+                    name="marital"
                     value="Married"
                     id="married"
                   />
@@ -122,7 +286,7 @@ const ConsultForm = () => {
                       // , { required: true }
                     )}
                     type="radio"
-                    name="maritalStatus"
+                    name="marital"
                     value="Separated"
                     id="separated"
                   />
@@ -131,11 +295,11 @@ const ConsultForm = () => {
                 <label htmlFor="divored">
                   <input
                     {...register(
-                      "maritalStatus",
+                      "marital",
                       // , { required: true }
                     )}
                     type="radio"
-                    name="maritalStatus"
+                    name="marital"
                     value="Divored"
                     id="divored"
                   />
@@ -144,11 +308,11 @@ const ConsultForm = () => {
                 <label htmlFor="widowed">
                   <input
                     {...register(
-                      "maritalStatus",
+                      "marital",
                       // , { required: true }
                     )}
                     type="radio"
-                    name="maritalStatus"
+                    name="marital"
                     value="Widowed"
                     id="widowed"
                   />
@@ -174,11 +338,11 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="emailAddress">
+              <label htmlFor="email">
                 <p>이메일 주소</p>
                 <p>Email Address</p>
               </label>
-              <input id="emailAddress" {...register("emailAddress")} />
+              <input id="email" {...register("email")} />
             </InputIndividual>
           </Col>
           <Col xs={24} md={8}>
@@ -311,15 +475,15 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="arrivalDateToCanada">
+              <label htmlFor="canadaArrivalDate">
                 <p>캐나다 도착일</p>
                 <p>Arrival Date To Canada</p>
               </label>
-              <div className="arrivalDateToCanada">
+              <div className="canadaArrivalDate">
                 <input
-                  id="arrivalDateToCanada"
+                  id="canadaArrivalDate"
                   type="date"
-                  {...register("arrivalDateToCanada", { valueAsDate: true })}
+                  {...register("canadaArrivalDate", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
@@ -358,23 +522,36 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="reasonForService">
+              <label htmlFor="reasonForVisit">
                 <p>방문이유</p>
                 <p>Reason For Service</p>
               </label>
-              <input id="reasonForService" {...register("reasonForService")} />
+              <input id="reasonForVisit" {...register("reasonForVisit")} />
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="intakeDateAndTime">
-                <p>접수 날짜&시간</p>
-                <p>Intake Date</p>
+              <label htmlFor="nextApptDateTime">
+                <p>다음 상담 날짜&시간</p>
+                <p>Next Appointment Date & Time</p>
               </label>
-              <div className="intakeDateAndTime">
+              <div className="nextApptDateTime">
                 <input
-                  id="intakeDateAndTime"
+                  id="nextApptDateTime"
                   type="datetime-local"
-                  {...register("intakeDateAndTime", { valueAsDate: true })}
+                  {...register("nextApptDateTime", { valueAsDate: true })}
+                />
+              </div>
+            </InputIndividual>
+            <InputIndividual>
+              <label htmlFor="registerDateAndTime">
+                <p>접수 날짜&시간</p>
+                <p>Register Date & Time</p>
+              </label>
+              <div className="registerDateAndTime">
+                <input
+                  id="registerDateAndTime"
+                  type="datetime-local"
+                  {...register("registerDateAndTime", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
@@ -417,14 +594,14 @@ const ConsultForm = () => {
               <textarea id="memo" {...register("memo")} />
             </InputIndividual>
             <InputIndividual>
-              <label htmlFor="attachments">
+              <label htmlFor="file">
                 <p>첨부파일</p>
-                <p>Attachments</p>
+                <p>file</p>
               </label>
               <input
                 ref={register}
-                id="attachments"
-                {...register("attachments")}
+                id="file"
+                {...register("file")}
                 type="file"
               />
             </InputIndividual>
@@ -447,7 +624,96 @@ const ConsultForm = () => {
             service agencies, and government funders.
           </p>
         </div>
-        <div className="signature"></div>
+        <div
+          // className="signature"
+          // css={css`
+          className={css`
+            display: flex;
+            /* padding: 10px; */
+            justify-content: space-between;
+          `}>
+          {/*  <div className="signature__left"> */}
+          <div
+            className={css`
+              width: 50%;
+            `}>
+            <p>접수자 서명</p>
+            <p>Intake Coordinator Signature </p>
+            <button
+              onClick={() => {
+                setModalIsOpen(true);
+                setIsCoordinatorSigModal(true);
+              }}>
+              Click to Sign
+            </button>
+            {/* 
+            <SignatureCanvas
+              penColor="blue"
+              backgroundColor="lightgray"
+              canvasProps={{
+                width: 500,
+                height: 200,
+                className: "sigCanvas",
+              }}
+            />
+            */}
+            <div
+              className={css`
+                width: 80%;
+              `}>
+              {trimmedCoordinatorSigDataUrl && (
+                <img
+                  className={css`
+                    width: 100%;
+                  `}
+                  src={trimmedCoordinatorSigDataUrl}
+                  alt="Coordinator Signature"
+                />
+              )}
+            </div>
+          </div>
+          {/*<div className="signature__right">*/}
+          <div
+            className={css`
+              width: 50%;
+            `}>
+            <p>내담자 서명</p>
+            <p>Client Signature </p>
+            {/*
+            <SignatureCanvas
+              penColor="blue"
+              backgroundColor="lightgray"
+              canvasProps={{
+                width: 500,
+                height: 200,
+                className: "sigCanvas",
+              }}
+            />
+            */}
+
+            <button
+              onClick={() => {
+                setModalIsOpen(true);
+                setIsClientSigModal(true);
+              }}>
+              Click to Sign
+            </button>
+            <div
+              className={css`
+                width: 80%;
+              `}>
+              {trimmedClientSigDataUrl && (
+                <img
+                  className={css`
+                    width: 100%;
+                  `}
+                  src={trimmedClientSigDataUrl}
+                  alt="Coordinator Signature"
+                />
+              )}
+            </div>
+          </div>
+        </div>
         <input type="submit" />
         <button type="submit"> Submit Button</button>
       </form>
@@ -456,3 +722,5 @@ const ConsultForm = () => {
 };
 
 export default ConsultForm;
+
+/* ReactDOM.render(<ConsultForm />, setAppElement); */
