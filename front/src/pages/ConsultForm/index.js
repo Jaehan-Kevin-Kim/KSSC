@@ -1,18 +1,35 @@
 import ReactDOM from "react-dom";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import styled from "@emotion/styled";
-import { Row, Col } from "antd";
+import { Row, Col, Form, Checkbox, Input, Divider } from "antd";
 import { css, cx } from "@emotion/css";
+
 // import { css, jsx } from "@emotion/react";
 import SignatureCanvas from "react-signature-canvas";
 import Modal, { setAppElement } from "react-modal";
-import { useDispatch } from "react-redux";
-import { createConsultForm } from "../features/consultForm/consultFormSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  createConsultForm,
+  postFile,
+} from "../../features/consultForm/consultFormSlice";
+import {
+  InputIndividual,
+  InputText,
+  InputRadio,
+  InputDate,
+  InputTime,
+  InputDateAndTime,
+  TextArea,
+  InputFile,
+  Button,
+  ButtonPrimary,
+  Container,
+} from "./styles";
 
-const InputIndividual = styled.div`
-  display: flex;
-`;
+// const InputIndividual = styled.div`
+//   display: flex;
+// `;
 
 const modalStyle = {
   overlay: {
@@ -49,11 +66,15 @@ Modal.setAppElement("#root");
 
 const ConsultForm = () => {
   const dispatch = useDispatch();
+  const { isLoading, isError, isSuccess, message } = useSelector(
+    (state) => state.consultForm,
+  );
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm();
 
@@ -67,13 +88,12 @@ const ConsultForm = () => {
   let sigCoordinatorCanvas = useRef({});
   let sigClientCanvas = useRef({});
 
-  const onSubmit = (data) => {
-    console.log("submit");
-    console.log("data: ", data);
-    dispatch(createConsultForm(data));
-    // const { fullName, exampleRequired } = data;
-    // console.log(fullName, exampleRequired);
-  };
+  useEffect(() => {
+    if (isSuccess) {
+      alert("Saved!");
+      reset();
+    }
+  }, [isSuccess]);
 
   const clearSigCanvas = (e) => {
     if (isCoordinatorSigModal) {
@@ -102,6 +122,36 @@ const ConsultForm = () => {
     setModalIsOpen(false);
   };
 
+  const onChangeFile = (e) => {
+    console.log("filechange");
+    console.log("attachment: ", e.target);
+  };
+
+  const onInputFile = (e) => {
+    console.log("attachment: ", e.target.files[0]);
+    const fileFormData = new FormData();
+    fileFormData.append("attachment", e.target.files[0]);
+    // console.log("fileFormData in onInputFile", fileFormData);
+    // for (let [key, value] of fileFormData) {
+    //   console.log(`${key}: ${value}`);
+    // }
+
+    // for (const value of fileFormData.values()) {
+    //   console.log(value);
+    // }
+    dispatch(postFile(fileFormData));
+  };
+  const onSubmit = (data) => {
+    console.log("submit");
+    console.log("data: ", data);
+    dispatch(createConsultForm(data));
+
+    // const { fullName, exampleRequired } = data;
+    // console.log(fullName, exampleRequired);
+  };
+
+  // const onError = (errors, e) => console.log(errors, e);
+
   // const saveSigCanvas = (name) => (e) => {
   //   console.log("saveSigCanvas: ", e);
   //   console.log("saveSigCanvasNam: ", name);
@@ -126,7 +176,7 @@ const ConsultForm = () => {
   // };
 
   return (
-    <>
+    <Container>
       <Modal
         style={modalStyle}
         isOpen={modalIsOpen}
@@ -176,35 +226,48 @@ const ConsultForm = () => {
             />
           )}
         </div>
-        <button onClick={clearSigCanvas}>Clear</button>
-        {/* <button onClick={saveSigCanvas("coordinatorSig")}>Save</button> */}
-        <button onClick={saveSigCanvas}>Save</button>
-        <button
+        <Button onClick={clearSigCanvas}>Clear</Button>
+        {/* <Button onClick={saveSigCanvas("coordinatorSig")}>Save</Button> */}
+        <Button onClick={saveSigCanvas}>Save</Button>
+        <Button
           onClick={() => {
             setIsCoordinatorSigModal(false);
             setIsClientSigModal(false);
             setModalIsOpen(false);
           }}>
           Close
-        </button>
+        </Button>
       </Modal>
+      {/* <Form onSubmit={handleSubmit(onSubmit, onError)}> */}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Row gutter={8}>
           <Col xs={24} md={8}>
+            <InputIndividual>
+              <label htmlFor="fileId">
+                <p>파일 ID</p>
+                <p>File ID</p>
+              </label>
+              <InputText
+                className="disabled"
+                disabled
+                id="clientName"
+                {...register("fileId")}
+              />
+            </InputIndividual>
             <InputIndividual>
               <label htmlFor="clientName">
                 <p>내담자 성명</p>
                 <p>Client Name (Last, First)</p>
               </label>
-              <input id="clientName" {...register("clientName")} />
+              <InputText id="clientName" {...register("clientName")} />
             </InputIndividual>
             <InputIndividual>
               <label htmlFor="DOB">
                 <p>생년월일</p>
-                <p>Date of Birth (YYYY-MM-DD)</p>
+                <p>Date of Birth</p>
               </label>
               <div className="DOB">
-                <input
+                <InputDate
                   id="DOB"
                   type="date"
                   {...register("DOB", { valueAsDate: true })}
@@ -219,7 +282,8 @@ const ConsultForm = () => {
               </label>
               <div className="radioButton">
                 <label htmlFor="male">
-                  <input
+                  {/* <span className="radioText">Male</span> */}
+                  <InputRadio
                     {...register(
                       "gender",
                       // , { required: true }
@@ -229,10 +293,12 @@ const ConsultForm = () => {
                     value="Male"
                     id="male"
                   />
-                  Male
+                  <span className="radioSpot"> Male </span>
+                  {/* <span className="radioSpot">Male</span> */}
                 </label>
                 <label htmlFor="female">
-                  <input
+                  {/* Female */}
+                  <InputRadio
                     {...register(
                       "gender",
                       // , { required: true }
@@ -242,81 +308,7 @@ const ConsultForm = () => {
                     value="Female"
                     id="female"
                   />
-                  Female
-                </label>
-              </div>
-            </InputIndividual>
-
-            <InputIndividual>
-              <label htmlFor="marital">
-                <p>혼인여부</p>
-                <p>Marital Status</p>
-              </label>
-              <div className="radioButton">
-                <label htmlFor="single">
-                  <input
-                    {...register(
-                      "marital",
-                      // , { required: true                   }
-                    )}
-                    type="radio"
-                    name="marital"
-                    value="Single"
-                    id="single"
-                  />
-                  Single
-                </label>
-                <label htmlFor="married">
-                  <input
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
-                    type="radio"
-                    name="marital"
-                    value="Married"
-                    id="married"
-                  />
-                  Married
-                </label>
-                <label htmlFor="separated">
-                  <input
-                    {...register(
-                      "separated",
-                      // , { required: true }
-                    )}
-                    type="radio"
-                    name="marital"
-                    value="Separated"
-                    id="separated"
-                  />
-                  Separated
-                </label>
-                <label htmlFor="divored">
-                  <input
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
-                    type="radio"
-                    name="marital"
-                    value="Divored"
-                    id="divored"
-                  />
-                  Divored
-                </label>
-                <label htmlFor="widowed">
-                  <input
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
-                    type="radio"
-                    name="marital"
-                    value="Widowed"
-                    id="widowed"
-                  />
-                  Widowed
+                  <span>Female</span>
                 </label>
               </div>
             </InputIndividual>
@@ -326,7 +318,81 @@ const ConsultForm = () => {
                 <p>전화번호</p>
                 <p>Phone Number</p>
               </label>
-              <input id="phoneNumber" {...register("phoneNumber")} />
+              <InputText id="phoneNumber" {...register("phoneNumber")} />
+            </InputIndividual>
+
+            <InputIndividual>
+              <label htmlFor="marital">
+                <p>혼인여부</p>
+                <p>Marital Status</p>
+              </label>
+              <div className="radioButton">
+                <label htmlFor="single">
+                  <InputRadio
+                    {...register(
+                      "marital",
+                      // , { required: true                   }
+                    )}
+                    type="radio"
+                    name="marital"
+                    value="Single"
+                    id="single"
+                  />
+                  <span>Single</span>
+                </label>
+                <label htmlFor="married">
+                  <InputRadio
+                    {...register(
+                      "marital",
+                      // , { required: true }
+                    )}
+                    type="radio"
+                    name="marital"
+                    value="Married"
+                    id="married"
+                  />
+                  <span>Married</span>
+                </label>
+                <label htmlFor="separated">
+                  <InputRadio
+                    {...register(
+                      "separated",
+                      // , { required: true }
+                    )}
+                    type="radio"
+                    name="marital"
+                    value="Separated"
+                    id="separated"
+                  />
+                  <span>Separated</span>
+                </label>
+                <label htmlFor="divored">
+                  <InputRadio
+                    {...register(
+                      "marital",
+                      // , { required: true }
+                    )}
+                    type="radio"
+                    name="marital"
+                    value="Divored"
+                    id="divored"
+                  />
+                  <span>Divored</span>
+                </label>
+                <label htmlFor="widowed">
+                  <InputRadio
+                    {...register(
+                      "marital",
+                      // , { required: true }
+                    )}
+                    type="radio"
+                    name="marital"
+                    value="Widowed"
+                    id="widowed"
+                  />
+                  <span>Widowed</span>
+                </label>
+              </div>
             </InputIndividual>
 
             <InputIndividual>
@@ -334,7 +400,7 @@ const ConsultForm = () => {
                 <p>주소 (우편번호)</p>
                 <p>Address (Postal Code)</p>
               </label>
-              <input id="address" {...register("address")} />
+              <InputText id="address" {...register("address")} />
             </InputIndividual>
 
             <InputIndividual>
@@ -342,7 +408,7 @@ const ConsultForm = () => {
                 <p>이메일 주소</p>
                 <p>Email Address</p>
               </label>
-              <input id="email" {...register("email")} />
+              <InputText id="email" {...register("email")} />
             </InputIndividual>
           </Col>
           <Col xs={24} md={8}>
@@ -351,19 +417,18 @@ const ConsultForm = () => {
                 <p>접수자</p>
                 <p>Intake Coordinator</p>
               </label>
-              <input
+              <InputText
                 id="intakeCoordinator"
                 {...register("intakeCoordinator")}
               />
             </InputIndividual>
-
             <InputIndividual>
               <label htmlFor="intakeStartTime">
                 <p>상담 시작시간</p>
                 <p>Intake Start Time</p>
               </label>
               <div className="intakeStartTime">
-                <input
+                <InputTime
                   id="intakeStartTime"
                   type="time"
                   {...register("intakeStartTime")}
@@ -378,7 +443,7 @@ const ConsultForm = () => {
                 <p>Intake End Time</p>
               </label>
               <div className="intakeEndTime">
-                <input
+                <InputTime
                   id="intakeEndTime"
                   type="time"
                   {...register("intakeEndTime")}
@@ -394,7 +459,7 @@ const ConsultForm = () => {
               </label>
               <div className="radioButton">
                 <label htmlFor="citizen">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -404,10 +469,10 @@ const ConsultForm = () => {
                     value="Citizen"
                     id="citizen"
                   />
-                  Citizen
+                  <span>Citizen</span>
                 </label>
                 <label htmlFor="pr">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -417,10 +482,10 @@ const ConsultForm = () => {
                     value="PR"
                     id="pr"
                   />
-                  PR
+                  <span>PR</span>
                 </label>
                 <label htmlFor="temporaryWorker">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -430,10 +495,10 @@ const ConsultForm = () => {
                     value="TemporaryWorker"
                     id="temporaryWorker"
                   />
-                  TemporaryWorker
+                  <span>TemporaryWorker</span>
                 </label>
                 <label htmlFor="student">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -443,10 +508,10 @@ const ConsultForm = () => {
                     value="Student"
                     id="student"
                   />
-                  Student
+                  <span>Student</span>
                 </label>
                 <label htmlFor="visitor">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -456,10 +521,10 @@ const ConsultForm = () => {
                     value="Visitor"
                     id="visitor"
                   />
-                  Visitor
+                  <span>Visitor</span>
                 </label>
                 <label htmlFor="refugee">
-                  <input
+                  <InputRadio
                     {...register(
                       "immigrationStatus",
                       // , { required: true }
@@ -469,7 +534,7 @@ const ConsultForm = () => {
                     value="Refugee"
                     id="refugee"
                   />
-                  Refugee
+                  <span>Refugee</span>
                 </label>
               </div>
             </InputIndividual>
@@ -480,7 +545,7 @@ const ConsultForm = () => {
                 <p>Arrival Date To Canada</p>
               </label>
               <div className="canadaArrivalDate">
-                <input
+                <InputDate
                   id="canadaArrivalDate"
                   type="date"
                   {...register("canadaArrivalDate", { valueAsDate: true })}
@@ -493,7 +558,7 @@ const ConsultForm = () => {
                 <p>직업</p>
                 <p>Occupation</p>
               </label>
-              <input id="occupation" {...register("occupation")} />
+              <InputText id="occupation" {...register("occupation")} />
             </InputIndividual>
 
             <InputIndividual>
@@ -501,7 +566,7 @@ const ConsultForm = () => {
                 <p>학력</p>
                 <p>Education</p>
               </label>
-              <input id="education" {...register("education")} />
+              <InputText id="education" {...register("education")} />
             </InputIndividual>
 
             <InputIndividual>
@@ -509,7 +574,7 @@ const ConsultForm = () => {
                 <p>영어능력</p>
                 <p>English Level</p>
               </label>
-              <input id="englishLevel" {...register("englishLevel")} />
+              <InputText id="englishLevel" {...register("englishLevel")} />
             </InputIndividual>
           </Col>
           <Col xs={24} md={8}>
@@ -518,15 +583,14 @@ const ConsultForm = () => {
                 <p>담당 상담사</p>
                 <p>Counselor</p>
               </label>
-              <input id="counselor" {...register("counselor")} />
+              <InputText id="counselor" {...register("counselor")} />
             </InputIndividual>
-
             <InputIndividual>
               <label htmlFor="reasonForVisit">
                 <p>방문이유</p>
                 <p>Reason For Service</p>
               </label>
-              <input id="reasonForVisit" {...register("reasonForVisit")} />
+              <InputText id="reasonForVisit" {...register("reasonForVisit")} />
             </InputIndividual>
 
             <InputIndividual>
@@ -535,7 +599,7 @@ const ConsultForm = () => {
                 <p>Next Appointment Date & Time</p>
               </label>
               <div className="nextApptDateTime">
-                <input
+                <InputDateAndTime
                   id="nextApptDateTime"
                   type="datetime-local"
                   {...register("nextApptDateTime", { valueAsDate: true })}
@@ -548,7 +612,7 @@ const ConsultForm = () => {
                 <p>Register Date & Time</p>
               </label>
               <div className="registerDateAndTime">
-                <input
+                <InputDateAndTime
                   id="registerDateAndTime"
                   type="datetime-local"
                   {...register("registerDateAndTime", { valueAsDate: true })}
@@ -562,7 +626,7 @@ const ConsultForm = () => {
                 <p>Intake Time</p>
               </label>
               <div className="intakeTime">
-                <input
+                <InputTime
                   id="intakeTime"
                   type="time"
                   {...register("intakeTime", { valueAsDate: true })}
@@ -571,19 +635,15 @@ const ConsultForm = () => {
             </InputIndividual> */}
 
             <InputIndividual>
-              <label htmlFor="fileId">
-                <p>파일 ID</p>
-                <p>File ID</p>
-              </label>
-              <input id="clientName" {...register("fileId")} />
-            </InputIndividual>
-
-            <InputIndividual>
               <label htmlFor="servicePath">
                 <p>서비스 경로</p>
                 <p>How did you hear about KSSC?</p>
               </label>
-              <textarea id="servicePath" {...register("servicePath")} />
+              <TextArea
+                rows="4"
+                id="servicePath"
+                {...register("servicePath")}
+              />
             </InputIndividual>
 
             <InputIndividual>
@@ -591,22 +651,27 @@ const ConsultForm = () => {
                 <p>담당자 메모</p>
                 <p>Coordinator's Note</p>
               </label>
-              <textarea id="memo" {...register("memo")} />
+              <TextArea rows="4" id="memo" {...register("memo")} />
             </InputIndividual>
             <InputIndividual>
               <label htmlFor="file">
                 <p>첨부파일</p>
                 <p>file</p>
               </label>
-              <input
+              <InputFile
                 ref={register}
                 id="file"
+                name="attachment"
+                onChange={onChangeFile}
+                onInput={onInputFile}
                 {...register("file")}
                 type="file"
               />
             </InputIndividual>
           </Col>
         </Row>
+        <Divider />
+
         <div className="agreement">
           <p>개인정보 수집이용 제공동의서</p>
           <p>Service Agreement</p>
@@ -624,39 +689,33 @@ const ConsultForm = () => {
             service agencies, and government funders.
           </p>
         </div>
+        <Divider />
+
         <div
           // className="signature"
           // css={css`
           className={css`
             display: flex;
-            /* padding: 10px; */
+
             justify-content: space-between;
           `}>
-          {/*  <div className="signature__left"> */}
           <div
             className={css`
               width: 50%;
+              display: flex;
             `}>
-            <p>접수자 서명</p>
-            <p>Intake Coordinator Signature </p>
-            <button
-              onClick={() => {
-                setModalIsOpen(true);
-                setIsCoordinatorSigModal(true);
-              }}>
-              Click to Sign
-            </button>
-            {/* 
-            <SignatureCanvas
-              penColor="blue"
-              backgroundColor="lightgray"
-              canvasProps={{
-                width: 500,
-                height: 200,
-                className: "sigCanvas",
-              }}
-            />
-            */}
+            <div>
+              <p>접수자 서명</p>
+              <p>Intake Coordinator Signature </p>
+              <Button
+                onClick={() => {
+                  setModalIsOpen(true);
+                  setIsCoordinatorSigModal(true);
+                }}>
+                Click to Sign
+              </Button>
+            </div>
+
             <div
               className={css`
                 width: 80%;
@@ -672,32 +731,21 @@ const ConsultForm = () => {
               )}
             </div>
           </div>
-          {/*<div className="signature__right">*/}
+
           <div
             className={css`
               width: 50%;
             `}>
             <p>내담자 서명</p>
             <p>Client Signature </p>
-            {/*
-            <SignatureCanvas
-              penColor="blue"
-              backgroundColor="lightgray"
-              canvasProps={{
-                width: 500,
-                height: 200,
-                className: "sigCanvas",
-              }}
-            />
-            */}
 
-            <button
+            <Button
               onClick={() => {
                 setModalIsOpen(true);
                 setIsClientSigModal(true);
               }}>
               Click to Sign
-            </button>
+            </Button>
             <div
               className={css`
                 width: 80%;
@@ -714,10 +762,17 @@ const ConsultForm = () => {
             </div>
           </div>
         </div>
-        <input type="submit" />
-        <button type="submit"> Submit Button</button>
+
+        <ButtonPrimary
+          className="submit-btn"
+          type="submit"
+          onClick={() => {
+            console.log("click");
+          }}>
+          Submit Form
+        </ButtonPrimary>
       </form>
-    </>
+    </Container>
   );
 };
 

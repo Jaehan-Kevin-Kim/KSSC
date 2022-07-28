@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { Row, Col } from "antd";
+import { Row, Col, Form, Input } from "antd";
 import styled from "@emotion/styled";
 
 const InputIndividual = styled.div`
@@ -16,8 +16,6 @@ const HookFormTest = () => {
 
   const onSubmit = (data) => {
     console.log("data: ", data);
-    const { fullName, exampleRequired } = data;
-    console.log(fullName, exampleRequired);
   };
 
   return (
@@ -25,11 +23,16 @@ const HookFormTest = () => {
       <Row gutter={8}>
         <Col xs={24} md={8}>
           <InputIndividual>
-            <label htmlFor="clientName">
-              <p>내담자 성명</p>
-              <p>Client Name (Last, First)</p>
-            </label>
-            <input id="clientName" {...register("clientName")} />
+            <Form.Item
+              name="clientName"
+              label="내담자 성명"
+              rules={[
+                {
+                  required: true,
+                },
+              ]}>
+              <input id="clientName" {...register("clientName")} />
+            </Form.Item>
           </InputIndividual>
           <InputIndividual>
             <label htmlFor="dayOfBirth">

@@ -90,6 +90,18 @@ const getMe = async (req, res) => {
   }
 };
 
+const deleteUser = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const user = await User.findById(id);
+    await user.remove();
+    res.status(200).json({ message: `User Id: {id} is removed` });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error });
+  }
+};
+
 // Generate JWT
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -102,4 +114,5 @@ module.exports = {
   registerUser,
   loginUser,
   getMe,
+  deleteUser,
 };

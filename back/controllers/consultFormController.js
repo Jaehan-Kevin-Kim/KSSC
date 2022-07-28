@@ -1,5 +1,15 @@
 const asyncHandler = require("express-async-handler");
 const ConsultForm = require("../models/consultFormModel");
+const path = require("path");
+const multer = require("multer");
+const fs = require("fs");
+
+try {
+  fs.accessSync("uploads");
+} catch (error) {
+  console.log("Create uploads folder");
+  fs.mkdirSync("uploads");
+}
 
 const postForm = async (req, res) => {
   const bodyValue = req.body;
@@ -54,6 +64,18 @@ const updateForm = async (req, res) => {
   }
 };
 
+const postFile = async (req, res) => {
+  try {
+    console.log(req.file);
+    if (req.file) {
+      res.status(200).json(req.file.filename);
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).json(error);
+  }
+};
+
 //Admin
 const deleteForm = async (req, res) => {
   const id = req.params.id;
@@ -73,4 +95,5 @@ module.exports = {
   postForm,
   updateForm,
   deleteForm,
+  postFile,
 };
