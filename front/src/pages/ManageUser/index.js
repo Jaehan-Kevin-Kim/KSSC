@@ -6,25 +6,67 @@ import { MdEdit, MdDelete } from "react-icons/md";
 import { css } from "@emotion/css";
 import { useDispatch, useSelector } from "react-redux";
 import { getForms } from "../../features/consultForm/consultFormSlice";
+import Highlighter from "react-highlight-words";
 const { Search } = Input;
+
+let searchKeyword;
 
 const columns = [
   {
     title: "Name",
     dataIndex: "name",
-    render: (text) => <a>{text}</a>,
+    key: "name",
+    // render: (text) => <a>{text}</a>,
+    render: (text) => (
+      <Highlighter
+        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+        searchWords={[searchKeyword]}
+        autoEscape
+        textToHighlight={text}
+      />
+    ),
   },
   {
     title: "Email",
+    key: "email",
     dataIndex: "email",
+    render: (text, _, index, record) => {
+      console.log(text, _, index, record);
+      return (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+          searchWords={[searchKeyword]}
+          autoEscape
+          textToHighlight={text}
+        />
+      );
+    },
   },
   {
     title: "Phone",
+    key: "phone",
     dataIndex: "phone",
+    render: (text) => (
+      <Highlighter
+        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+        searchWords={[searchKeyword]}
+        autoEscape
+        textToHighlight={text}
+      />
+    ),
   },
   {
     title: "Register Date & Time",
+    key: "dateTime",
     dataIndex: "dateTime",
+    render: (text) => (
+      <Highlighter
+        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+        searchWords={[searchKeyword]}
+        autoEscape
+        textToHighlight={text}
+      />
+    ),
   },
   {
     title: "Action",
@@ -64,24 +106,6 @@ const changePhoneFormat2 = (phoneNumber) => {
   return null;
 };
 
-let dataTest = [
-  {
-    key: "1",
-    name: "John Brown",
-    email: "test@test.com",
-    /* phone: "1234567890", */
-    phone: changePhoneFormat2("1234567890"),
-    dateTime: "2022-06-07T20:45:00.000+00:00",
-  },
-  {
-    key: "2",
-    name: "Jim Green",
-    email: "test2@test2.com",
-    phone: "0000007890",
-    dateTime: "2022-02-11@09:21",
-  },
-];
-
 let data = [];
 
 const rowSelection = {
@@ -114,38 +138,41 @@ const ManageUser = () => {
   }, []);
 
   useEffect(() => {
-    console.log(consultForms);
     data = consultForms.map((v) => ({
       key: v.email,
       name: v.clientName,
       email: v.email,
-      /* phone: v.phone, */
       phone: changePhoneFormat(v.phone),
-      dateTime: v.registerDateAndTime,
+      dateTime: registerDateFormat(v.registerDateAndTime),
+      /* phone: v.phone,
+      dateTime: v.registerDateAndTime, */
     }));
-    /* console.log(tableData); */
-    /* data.push(tableData); */
-
-    /* data = convertedData; */
-
-    console.log("data: ", data);
-  }, []);
+  }, [consultForms, query]);
 
   const changePhoneFormat = (phoneNumber) => {
     const match = phoneNumber.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return `${match[1]}-${match[2]}-${match[3]}`;
-    }
-    return phoneNumber;
+    /* if (match) { */
+    const result = `${match[1]}-${match[2]}-${match[3]}`;
+    console.log("result type: ", typeof result);
+    return result;
+    /* } */
+    /* return phoneNumber; */
   };
 
   const registerDateFormat = (registerInfo) => {
-    const match = registerInfo.match(/^[0-9].*[T](\d{2}:\d{2})/);
+    const match = registerInfo.match(/(^[0-9].*)([T])(\d{2}:\d{2})/);
+    return `${match[1]}@${match[3]}`;
   };
 
-  const keys = ["name", "email", "phone", "dateTime"];
+  /* const keys = ["name", "email", "phone", "dateTime"]; */
 
   const search = (d) => {
+    if (!query) {
+      searchKeyword = query;
+      return d;
+    }
+    searchKeyword = query;
+    console.log("searchKeyword: ", searchKeyword);
     return d.filter((item) =>
       /* keys.some((key) => item[key].toLowerCase().includes(query)), */
       Object.keys(item).some((key) => item[key].toLowerCase().includes(query)),

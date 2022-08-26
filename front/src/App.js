@@ -6,7 +6,6 @@ import ManageUser from "./pages/ManageUser";
 // import HookFormTest from "./pages/HookFormTest";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import { Modal } from "react-modal";
 
 // Modal.setAppElement("#root");
 
