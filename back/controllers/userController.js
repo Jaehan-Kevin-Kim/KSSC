@@ -69,7 +69,7 @@ const loginUser = async (req, res) => {
 //Admin
 const getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select("-password");
     res.status(200).json(users);
   } catch (error) {
     console.log(error);
@@ -81,12 +81,24 @@ const getMe = async (req, res) => {
   console.log(req.user);
 
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).select("-password");
 
     res.status(200).json(user);
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
+  }
+};
+
+const deleteUser = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const user = await User.findById(id);
+    await user.remove();
+    res.status(200).json({ message: `User Id: {id} is removed` });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error });
   }
 };
 
@@ -102,4 +114,5 @@ module.exports = {
   registerUser,
   loginUser,
   getMe,
+  deleteUser,
 };

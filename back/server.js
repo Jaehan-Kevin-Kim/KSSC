@@ -12,22 +12,22 @@ connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// app.use(
-//   cors({
-//     origin: true,
-//     credentials: true,
-//   }),
-// );
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  }),
+);
 // app.get("/user", (req, res) => {
 //   res.json({
 //     text: "hey",
 //   });
 // });
 
-app.use("/user", userRouter);
+app.use("/api/user", userRouter);
 // app.post('')
 
-app.use("/consultForm", consultFormRouter);
+app.use("/api/consultForm", consultFormRouter);
 
 // app.get('')
 
