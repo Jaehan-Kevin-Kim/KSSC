@@ -82,7 +82,7 @@ const deleteForm = async (req, res) => {
   try {
     const consultForm = await ConsultForm.findById(id);
     await consultForm.remove();
-    res.status(200).json({ message: `${id} is removed` });
+    res.status(200).json({ id: req.params.id });
   } catch (error) {
     console.log(error);
     res.status(400).json({ error: error });

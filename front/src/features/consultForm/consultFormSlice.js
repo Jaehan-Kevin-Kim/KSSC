@@ -28,6 +28,21 @@ export const createConsultForm = createAsyncThunk(
   },
 );
 
+export const deleteForm = createAsyncThunk(
+  "consultForms/deleteForm",
+  async (formId, thunkAPI) => {
+    try {
+      const token = thunkAPI.getState().auth.user.token;
+      return await consultFormService.deleteForm(formId, token);
+    } catch (error) {
+      console.log("Error during delete form", error);
+      const message =
+        error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const getForms = createAsyncThunk(
   "consultForms/getForms",
   async (thunkAPI) => {
@@ -94,6 +109,25 @@ export const consultFormSlice = createSlice({
         state.consultForms = action.payload;
       })
       .addCase(getForms.rejected, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = false;
+        state.isError = true;
+        state.message = action.payload;
+      })
+      .addCase(deleteForm.pending, (state) => {
+        state.isLoading = true;
+        state.isSuccess = false;
+        state.isError = false;
+      })
+      .addCase(deleteForm.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.isSuccess = true;
+        state.isError = false;
+        state.consultForms = state.consultForms.filter(
+          (v) => v._id !== action.payload.id,
+        );
+      })
+      .addCase(deleteForm.rejected, (state, action) => {
         state.isLoading = false;
         state.isSuccess = false;
         state.isError = true;

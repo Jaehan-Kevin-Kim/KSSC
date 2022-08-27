@@ -17,6 +17,17 @@ const getForms = async () => {
   return response.data;
 };
 
+const deleteForm = async (formId, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+  const response = await axios.delete(`${API_URL}/${formId}`, config);
+  console.log("response: ", response.data);
+  return response.data;
+};
+
 const postFile = async (fileFormData, token) => {
   console.log("fileFormData: ", fileFormData);
   for (const value of fileFormData.values()) {
@@ -32,5 +43,10 @@ const postFile = async (fileFormData, token) => {
   return response.data;
 };
 
-const consultFormService = { createConsultForm, postFile, getForms };
+const consultFormService = {
+  createConsultForm,
+  postFile,
+  getForms,
+  deleteForm,
+};
 export default consultFormService;

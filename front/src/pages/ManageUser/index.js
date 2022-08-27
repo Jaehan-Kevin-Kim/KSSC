@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import React, { useEffect, useState } from "react";
 import { Input, Space, Table } from "antd";
 import { Container } from "../ConsultForm/styles";
@@ -5,108 +6,113 @@ import { SearchBar, buttonIcon } from "./styles";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { css } from "@emotion/css";
 import { useDispatch, useSelector } from "react-redux";
-import { getForms } from "../../features/consultForm/consultFormSlice";
+import {
+  deleteForm,
+  getForms,
+} from "../../features/consultForm/consultFormSlice";
 import Highlighter from "react-highlight-words";
+import Column from "antd/lib/table/Column";
 const { Search } = Input;
 
 let searchKeyword;
 
-const columns = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    // render: (text) => <a>{text}</a>,
-    render: (text) => (
-      <Highlighter
-        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-        searchWords={[searchKeyword]}
-        autoEscape
-        textToHighlight={text}
-      />
-    ),
-  },
-  {
-    title: "Email",
-    key: "email",
-    dataIndex: "email",
-    render: (text, _, index, record) => {
-      console.log(text, _, index, record);
-      return (
-        <Highlighter
-          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchKeyword]}
-          autoEscape
-          textToHighlight={text}
-        />
-      );
-    },
-  },
-  {
-    title: "Phone",
-    key: "phone",
-    dataIndex: "phone",
-    render: (text) => (
-      <Highlighter
-        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-        searchWords={[searchKeyword]}
-        autoEscape
-        textToHighlight={text}
-      />
-    ),
-  },
-  {
-    title: "Register Date & Time",
-    key: "dateTime",
-    dataIndex: "dateTime",
-    render: (text) => (
-      <Highlighter
-        highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-        searchWords={[searchKeyword]}
-        autoEscape
-        textToHighlight={text}
-      />
-    ),
-  },
-  {
-    title: "Action",
-    key: "action",
-    render: () => (
-      <Space size="middle">
-        <button
-          className={css`
-            color: blue;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 18px;
-          `}>
-          <MdEdit />
-        </button>
-        <button
-          className={css`
-            color: red;
-            cursor: pointer;
-            border: none;
-            background: none;
-            font-size: 18px;
-          `}>
-          <MdDelete />
-        </button>
-      </Space>
-    ),
-  },
-];
+// const columns = [
+//   {
+//     title: "Name",
+//     dataIndex: "name",
+//     key: "name",
+//     // render: (text) => <a>{text}</a>,
+//     render: (text) => (
+//       <Highlighter
+//         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+//         searchWords={[searchKeyword]}
+//         autoEscape
+//         textToHighlight={text}
+//       />
+//     ),
+//   },
+//   {
+//     title: "Email",
+//     key: "email",
+//     dataIndex: "email",
+//     render: (text, _, index, record) => {
+//       console.log(text, _, index, record);
+//       return (
+//         <Highlighter
+//           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+//           searchWords={[searchKeyword]}
+//           autoEscape
+//           textToHighlight={text}
+//         />
+//       );
+//     },
+//   },
+//   {
+//     title: "Phone",
+//     key: "phone",
+//     dataIndex: "phone",
+//     render: (text) => (
+//       <Highlighter
+//         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+//         searchWords={[searchKeyword]}
+//         autoEscape
+//         textToHighlight={text}
+//       />
+//     ),
+//   },
+//   {
+//     title: "Register Date & Time",
+//     key: "dateTime",
+//     dataIndex: "dateTime",
+//     render: (text) => (
+//       <Highlighter
+//         highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+//         searchWords={[searchKeyword]}
+//         autoEscape
+//         textToHighlight={text}
+//       />
+//     ),
+//   },
+//   {
+//     title: "Action",
+//     key: "action",
+//     render: () => (
+//       <Space size="middle">
+//         <button
+//           className={css`
+//             color: blue;
+//             cursor: pointer;
+//             border: none;
+//             background: none;
+//             font-size: 18px;
+//           `}>
+//           <MdEdit />
+//         </button>
+//         <button
+//           onClick={() => console.log("click")}
+//           className={css`
+//             color: red;
+//             cursor: pointer;
+//             border: none;
+//             background: none;
+//             font-size: 18px;
+//           `}>
+//           <MdDelete />
+//         </button>
+//       </Space>
+//     ),
+//   },
+// ];
 
-const changePhoneFormat2 = (phoneNumber) => {
+/* const changePhoneFormat2 = (phoneNumber) => {
   const match = phoneNumber.match(/^(\d{3})(\d{3})(\d{4})$/);
   if (match) {
     return `${match[1]}-${match[2]}-${match[3]}`;
   }
   return null;
-};
+}; */
 
-let data = [];
+// let data = [];
 
 const rowSelection = {
   onChange: (selectedRowKeys, selectedRows) => {
@@ -122,15 +128,17 @@ const rowSelection = {
     name: record.name,
   }),
 };
-let convertedData;
+/* let convertedData; */
 
 const ManageUser = () => {
   const [query, setQuery] = useState("");
+  const [data, setData] = useState([]);
 
   const [selectionType, setSelectionType] = useState("checkbox");
   const { isSuccess, isLoading, message, consultForms } = useSelector(
     (state) => state.consultForm,
   );
+  const [forms, setForms] = useState();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -138,15 +146,26 @@ const ManageUser = () => {
   }, []);
 
   useEffect(() => {
-    data = consultForms.map((v) => ({
-      key: v.email,
-      name: v.clientName,
-      email: v.email,
-      phone: changePhoneFormat(v.phone),
-      dateTime: registerDateFormat(v.registerDateAndTime),
-      /* phone: v.phone,
-      dateTime: v.registerDateAndTime, */
-    }));
+    // console.log("effect run");
+    // console.log("consultForm: ", consultForms);
+    // 이걸 변수로 주고 한번 넣어 보기.
+    setData(
+      consultForms.map((v) => ({
+        key: v._id,
+        name: v.clientName,
+        email: v.email,
+        phone: changePhoneFormat(v.phone),
+        dateTime: registerDateFormat(v.registerDateAndTime),
+      })),
+    );
+    // console.log("data: ", data);
+    // data = consultForms.map((v) => ({
+    //   key: v._id,
+    //   name: v.clientName,
+    //   email: v.email,
+    //   phone: changePhoneFormat(v.phone),
+    //   dateTime: registerDateFormat(v.registerDateAndTime),
+    // }));
   }, [consultForms, query]);
 
   const changePhoneFormat = (phoneNumber) => {
@@ -179,6 +198,10 @@ const ManageUser = () => {
     );
   };
 
+  const onClickDeleteForm = () => {
+    console.log("click");
+  };
+
   /* 
   위 처럼, keys를 안쓰고 하는 방법 생각 해 보기
   const search = (d) => {
@@ -205,9 +228,101 @@ const ManageUser = () => {
             type: selectionType,
             ...rowSelection,
           }}
-          columns={columns}
-          dataSource={search(data)}
-        />
+          // columns={columns}
+          dataSource={!!query ? search(data) : data}>
+          <Column
+            title="Name"
+            dataIndex="name"
+            key="name"
+            // render= (text) => <a>{text}</a>
+            render={(text) => (
+              <Highlighter
+                highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                searchWords={[searchKeyword]}
+                autoEscape
+                textToHighlight={text}
+              />
+            )}
+          />
+          <Column
+            title="Email"
+            key="email"
+            dataIndex="email"
+            render={(text, _, index, record) => {
+              // console.log(text, _, index, record);
+              return (
+                <Highlighter
+                  highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                  searchWords={[searchKeyword]}
+                  autoEscape
+                  textToHighlight={text}
+                />
+              );
+            }}
+          />
+          <Column
+            title="Phone"
+            key="phone"
+            dataIndex="phone"
+            render={(text) => (
+              <Highlighter
+                highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                searchWords={[searchKeyword]}
+                autoEscape
+                textToHighlight={text}
+              />
+            )}
+          />
+          <Column
+            title="Register Date & Time"
+            key="dateTime"
+            dataIndex="dateTime"
+            render={(text) => (
+              <Highlighter
+                highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
+                searchWords={[searchKeyword]}
+                autoEscape
+                textToHighlight={text}
+              />
+            )}
+          />
+          <Column
+            title="Action"
+            key="action"
+            render={(_, record) => (
+              <Space size="middle">
+                <button
+                  className={css`
+                    color: blue;
+                    cursor: pointer;
+                    border: none;
+                    background: none;
+                    font-size: 18px;
+                  `}>
+                  <MdEdit />
+                </button>
+                <button
+                  onClick={() => {
+                    /* console.log(e);
+                    console.log("click inside"); */
+                    onClickDeleteForm;
+                    /* handleDelete(record.key) */
+                    /* console.log("record.key: ", record.key); */
+                    dispatch(deleteForm(record.key));
+                  }}
+                  className={css`
+                    color: red;
+                    cursor: pointer;
+                    border: none;
+                    background: none;
+                    font-size: 18px;
+                  `}>
+                  <MdDelete />
+                </button>
+              </Space>
+            )}
+          />
+        </Table>
       </div>
     </Container>
   );
