@@ -6,6 +6,7 @@ import ManageUser from "./pages/ManageUser";
 // import HookFormTest from "./pages/HookFormTest";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EditForm from "./pages/EditForm";
 
 // Modal.setAppElement("#root");
 
@@ -18,6 +19,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/manageUser" element={<ManageUser />} />
           <Route path="/consultForm" element={<ConsultForm />} />
+          <Route path="/consultForm/:id" element={<EditForm />} />
           <Route path="/register" element={<Register />} />
         </Routes>
       </Router>

@@ -9,9 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   deleteForm,
   getForms,
+  getFormById,
 } from "../../features/consultForm/consultFormSlice";
 import Highlighter from "react-highlight-words";
 import Column from "antd/lib/table/Column";
+import { useNavigate } from "react-router-dom";
 const { Search } = Input;
 
 let searchKeyword;
@@ -36,7 +38,7 @@ let searchKeyword;
 //     key: "email",
 //     dataIndex: "email",
 //     render: (text, _, index, record) => {
-//       console.log(text, _, index, record);
+// console.log(text, _, index, record);
 //       return (
 //         <Highlighter
 //           highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
@@ -89,7 +91,7 @@ let searchKeyword;
 //           <MdEdit />
 //         </button>
 //         <button
-//           onClick={() => console.log("click")}
+// onClick={() => console.log("click")}
 //           className={css`
 //             color: red;
 //             cursor: pointer;
@@ -116,11 +118,11 @@ let searchKeyword;
 
 const rowSelection = {
   onChange: (selectedRowKeys, selectedRows) => {
-    console.log(
-      `selectedRowKeys: ${selectedRowKeys}`,
-      "selectedRows: ",
-      selectedRows,
-    );
+    // console.log(
+    //   `selectedRowKeys: ${selectedRowKeys}`,
+    //   "selectedRows: ",
+    //   selectedRows,
+    // );
   },
   getCheckboxProps: (record) => ({
     disabled: record.name === "Disabled User",
@@ -135,11 +137,12 @@ const ManageUser = () => {
   const [data, setData] = useState([]);
 
   const [selectionType, setSelectionType] = useState("checkbox");
-  const { isSuccess, isLoading, message, consultForms } = useSelector(
-    (state) => state.consultForm,
-  );
+  const [isEditClick, setIsEditClick] = useState(false);
+  const { isSuccess, isLoading, message, consultForms, consultForm } =
+    useSelector((state) => state.consultForm);
   const [forms, setForms] = useState();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(getForms());
@@ -154,7 +157,7 @@ const ManageUser = () => {
         key: v._id,
         name: v.clientName,
         email: v.email,
-        phone: changePhoneFormat(v.phone),
+        phone: v.phone && changePhoneFormat(v.phone),
         dateTime: registerDateFormat(v.registerDateAndTime),
       })),
     );
@@ -168,11 +171,19 @@ const ManageUser = () => {
     // }));
   }, [consultForms, query]);
 
+  useEffect(() => {
+    console.log("consultForm: ", consultForm);
+    if (isEditClick && consultForm) {
+      navigate(`/consultForm/${consultForm._id}`);
+    }
+    // isEditClick && navigate(`/consultform/${consultForm.id}`);
+  }, [isEditClick, consultForm]);
+
   const changePhoneFormat = (phoneNumber) => {
     const match = phoneNumber.match(/^(\d{3})(\d{3})(\d{4})$/);
     /* if (match) { */
     const result = `${match[1]}-${match[2]}-${match[3]}`;
-    console.log("result type: ", typeof result);
+    // console.log("result type: ", typeof result);
     return result;
     /* } */
     /* return phoneNumber; */
@@ -191,7 +202,7 @@ const ManageUser = () => {
       return d;
     }
     searchKeyword = query;
-    console.log("searchKeyword: ", searchKeyword);
+    // console.log("searchKeyword: ", searchKeyword);
     return d.filter((item) =>
       /* keys.some((key) => item[key].toLowerCase().includes(query)), */
       Object.keys(item).some((key) => item[key].toLowerCase().includes(query)),
@@ -199,7 +210,7 @@ const ManageUser = () => {
   };
 
   const onClickDeleteForm = () => {
-    console.log("click");
+    // console.log("click");
   };
 
   /* 
@@ -207,8 +218,8 @@ const ManageUser = () => {
   const search = (d) => {
     return d.filter((item) => {
       Object.values(item).some((key) => {
-        console.log("key: ", key);
-        console.log("includes: ", key.toLowerCase().includes(query));
+        // console.log("key: ", key);
+        // console.log("includes: ", key.toLowerCase().includes(query));
       });
     });
   }; */
@@ -292,6 +303,11 @@ const ManageUser = () => {
             render={(_, record) => (
               <Space size="middle">
                 <button
+                  onClick={() => {
+                    // console.log("click edit");
+                    setIsEditClick(true);
+                    dispatch(getFormById(record.key));
+                  }}
                   className={css`
                     color: blue;
                     cursor: pointer;
@@ -303,11 +319,11 @@ const ManageUser = () => {
                 </button>
                 <button
                   onClick={() => {
-                    /* console.log(e);
-                    console.log("click inside"); */
+                    /* /* console.log(e); */
+                    /* console.log("click inside"); */
                     onClickDeleteForm;
                     /* handleDelete(record.key) */
-                    /* console.log("record.key: ", record.key); */
+                    console.log("record.key: ", record);
                     dispatch(deleteForm(record.key));
                   }}
                   className={css`
