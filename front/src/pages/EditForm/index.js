@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import styled from "@emotion/styled";
 import { Row, Col, Form, Checkbox, Input, Divider } from "antd";
+import dayjs from "dayjs";
 import { css, cx } from "@emotion/css";
 
 // import { css, jsx } from "@emotion/react";
@@ -11,6 +12,7 @@ import Modal, { setAppElement } from "react-modal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createConsultForm,
+  getFormById,
   postFile,
 } from "../../features/consultForm/consultFormSlice";
 import {
@@ -26,6 +28,7 @@ import {
   ButtonPrimary,
   Container,
 } from "./styles";
+import { useParams } from "react-router-dom";
 
 // const InputIndividual = styled.div`
 //   display: flex;
@@ -64,11 +67,12 @@ const modalStyle = {
 
 Modal.setAppElement("#root");
 
-const ConsultForm = () => {
+const EditForm = () => {
   const dispatch = useDispatch();
-  const { isLoading, isError, isSuccess, message } = useSelector(
+  const { isLoading, isError, isSuccess, message, consultForm } = useSelector(
     (state) => state.consultForm,
   );
+  const params = useParams();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const {
     register,
@@ -89,11 +93,24 @@ const ConsultForm = () => {
   let sigClientCanvas = useRef({});
 
   useEffect(() => {
+    console.log("id: ", params, params.id);
+    // dispatch(getFormById(params.id));
+  }, [params.id]);
+
+  useEffect(() => {
+    // dispatch(getFormById
     if (isSuccess) {
       // alert("Saved!");
       reset();
     }
   }, [isSuccess]);
+
+  // useEffect(() => {
+  //   if (consultForm) {
+  //     console.log(consultForm);
+  //   }
+  //   console.log(consultForm);
+  // }, [consultForm]);
 
   const clearSigCanvas = (e) => {
     if (isCoordinatorSigModal) {
@@ -259,7 +276,11 @@ const ConsultForm = () => {
                 <p>내담자 성명</p>
                 <p>Client Name (Last, First)</p>
               </label>
-              <InputText id="clientName" {...register("clientName")} />
+              <InputText
+                id="clientName"
+                value={consultForm.clientName}
+                {...register("clientName")}
+              />
             </InputIndividual>
             <InputIndividual>
               <label htmlFor="DOB">
@@ -270,6 +291,7 @@ const ConsultForm = () => {
                 <InputDate
                   id="DOB"
                   type="date"
+                  value={dayjs(consultForm.DOB).format("YYYY-MM-DD")}
                   {...register("DOB", { valueAsDate: true })}
                 />
               </div>
@@ -284,14 +306,15 @@ const ConsultForm = () => {
                 <label htmlFor="male">
                   {/* <span className="radioText">Male</span> */}
                   <InputRadio
-                    {...register(
-                      "gender",
-                      // , { required: true }
-                    )}
+                    // {...register(
+                    //   "gender",
+                    // )}
                     type="radio"
                     name="gender"
                     value="Male"
                     id="male"
+                    checked={consultForm.gender === "Male"}
+                    // value={consultForm.gender}
                   />
                   <span className="radioSpot"> Male </span>
                   {/* <span className="radioSpot">Male</span> */}
@@ -299,14 +322,14 @@ const ConsultForm = () => {
                 <label htmlFor="female">
                   {/* Female */}
                   <InputRadio
-                    {...register(
-                      "gender",
-                      // , { required: true }
-                    )}
+                    // {...register(
+                    //   "gender",
+                    // )}
                     type="radio"
                     name="gender"
                     value="Female"
                     id="female"
+                    checked={consultForm.gender === "Female"}
                   />
                   <span>Female</span>
                 </label>
@@ -776,6 +799,6 @@ const ConsultForm = () => {
   );
 };
 
-export default ConsultForm;
+export default EditForm;
 
 /* ReactDOM.render(<ConsultForm />, setAppElement); */

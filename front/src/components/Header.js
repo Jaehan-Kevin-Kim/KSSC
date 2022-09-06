@@ -57,16 +57,16 @@ const Header = () => {
                 <NavLabel>ConsultForm</NavLabel>
               </NavLink>
             </Menu.Item>
-            <Menu.Item key="logout" onClick={onLogout}>
-              <MdLogout />
-              <NavLabel>Logout</NavLabel>
-            </Menu.Item>
-            {/* <Menu.Item key="users">
+            <Menu.Item key="users">
               <NavLink to="/manageUser">
                 <FaUser />
                 <NavLabel>Users</NavLabel>
               </NavLink>
-            </Menu.Item> */}
+            </Menu.Item>
+            <Menu.Item key="logout" onClick={onLogout}>
+              <MdLogout />
+              <NavLabel>Logout</NavLabel>
+            </Menu.Item>
           </>
         ) : (
           <>
@@ -82,12 +82,12 @@ const Header = () => {
                 <NavLabel>Register</NavLabel>
               </NavLink>
             </Menu.Item>
-            <Menu.Item key="users">
+            {/* <Menu.Item key="users">
               <NavLink to="/manageUser">
                 <FaUser />
                 <NavLabel>Users</NavLabel>
               </NavLink>
-            </Menu.Item>
+            </Menu.Item> */}
           </>
         )}
       </Menu>
