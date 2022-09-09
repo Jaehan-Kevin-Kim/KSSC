@@ -314,11 +314,11 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="phoneNumber">
+              <label htmlFor="phone">
                 <p>전화번호</p>
                 <p>Phone Number</p>
               </label>
-              <InputText id="phoneNumber" {...register("phoneNumber")} />
+              <InputText id="phone" {...register("phone")} />
             </InputIndividual>
 
             <InputIndividual>
@@ -594,19 +594,6 @@ const ConsultForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="nextApptDateTime">
-                <p>다음 상담 날짜&시간</p>
-                <p>Next Appointment Date & Time</p>
-              </label>
-              <div className="nextApptDateTime">
-                <InputDateAndTime
-                  id="nextApptDateTime"
-                  type="datetime-local"
-                  {...register("nextApptDateTime", { valueAsDate: true })}
-                />
-              </div>
-            </InputIndividual>
-            <InputIndividual>
               <label htmlFor="registerDateAndTime">
                 <p>접수 날짜&시간</p>
                 <p>Register Date & Time</p>
@@ -616,6 +603,19 @@ const ConsultForm = () => {
                   id="registerDateAndTime"
                   type="datetime-local"
                   {...register("registerDateAndTime", { valueAsDate: true })}
+                />
+              </div>
+            </InputIndividual>
+            <InputIndividual>
+              <label htmlFor="nextApptDateTime">
+                <p>다음 상담 날짜&시간</p>
+                <p>Next Appointment Date & Time</p>
+              </label>
+              <div className="nextApptDateTime">
+                <InputDateAndTime
+                  id="nextApptDateTime"
+                  type="datetime-local"
+                  {...register("nextApptDateTime", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>

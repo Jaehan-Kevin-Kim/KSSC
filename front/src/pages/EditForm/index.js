@@ -1,34 +1,32 @@
-import ReactDOM from "react-dom";
-import React, { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import styled from "@emotion/styled";
-import { Row, Col, Form, Checkbox, Input, Divider } from "antd";
+import { css } from "@emotion/css";
+import { Col, Divider, Row } from "antd";
 import dayjs from "dayjs";
-import { css, cx } from "@emotion/css";
+import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
 // import { css, jsx } from "@emotion/react";
-import SignatureCanvas from "react-signature-canvas";
-import Modal, { setAppElement } from "react-modal";
+import Modal from "react-modal";
 import { useDispatch, useSelector } from "react-redux";
+import SignatureCanvas from "react-signature-canvas";
 import {
-  createConsultForm,
-  getFormById,
+  editConsultForm,
   postFile,
 } from "../../features/consultForm/consultFormSlice";
+
+import { useParams } from "react-router-dom";
 import {
-  InputIndividual,
-  InputText,
-  InputRadio,
-  InputDate,
-  InputTime,
-  InputDateAndTime,
-  TextArea,
-  InputFile,
   Button,
   ButtonPrimary,
   Container,
+  InputDate,
+  InputDateAndTime,
+  InputFile,
+  InputIndividual,
+  InputRadio,
+  InputText,
+  InputTime,
+  TextArea,
 } from "./styles";
-import { useParams } from "react-router-dom";
 
 // const InputIndividual = styled.div`
 //   display: flex;
@@ -123,22 +121,6 @@ const EditForm = () => {
     console.log(e);
   };
 
-  const saveSigCanvas = () => {
-    if (isCoordinatorSigModal) {
-      setTrimmedCoordinatorSigDataUrl(
-        sigCoordinatorCanvas.current.getTrimmedCanvas().toDataURL("image/url"),
-      );
-    }
-
-    isClientSigModal &&
-      setTrimmedClientSigDataUrl(
-        sigClientCanvas.current.getTrimmedCanvas().toDataURL("image/url"),
-      );
-    setIsCoordinatorSigModal(false);
-    setIsClientSigModal(false);
-    setModalIsOpen(false);
-  };
-
   const onChangeFile = (e) => {
     console.log("filechange");
     console.log("attachment: ", e.target);
@@ -160,8 +142,8 @@ const EditForm = () => {
   };
   const onSubmit = (data) => {
     console.log("submit");
-    console.log("data: ", data);
-    dispatch(createConsultForm(data));
+    // console.log("data: ", (...data, { fileId:consultForm._id})});
+    dispatch(editConsultForm(...data, { fileId: consultForm._id }));
 
     // const { fullName, exampleRequired } = data;
     // console.log(fullName, exampleRequired);
@@ -194,67 +176,6 @@ const EditForm = () => {
 
   return (
     <Container>
-      <Modal
-        style={modalStyle}
-        isOpen={modalIsOpen}
-        onRequestClose={() => {
-          console.log("clicked");
-          setModalIsOpen(false);
-        }}>
-        <p>Please sign in here.</p>
-        <div
-          className={css`
-            position: relative;
-            /* width: 300px;
-            height: 400px; */
-            width: 100%;
-            height: 70%;
-            .sigClientCanvas,
-            .sigCoordinatorCanvas {
-              position: absolute;
-              width: 100%;
-              height: 100%;
-            }
-          `}>
-          {isCoordinatorSigModal && (
-            <SignatureCanvas
-              penColor="blue"
-              backgroundColor="lightgray"
-              canvasProps={{
-                /* // width: 400,
-            // height: 200, */
-                /* position: absolute; */
-                className: "sigCoordinatorCanvas",
-              }}
-              ref={sigCoordinatorCanvas}
-            />
-          )}
-          {isClientSigModal && (
-            <SignatureCanvas
-              penColor="blue"
-              backgroundColor="lightgray"
-              canvasProps={{
-                /* // width: 400,
-            // height: 200, */
-                /* position: absolute; */
-                className: "sigClientCanvas",
-              }}
-              ref={sigClientCanvas}
-            />
-          )}
-        </div>
-        <Button onClick={clearSigCanvas}>Clear</Button>
-        {/* <Button onClick={saveSigCanvas("coordinatorSig")}>Save</Button> */}
-        <Button onClick={saveSigCanvas}>Save</Button>
-        <Button
-          onClick={() => {
-            setIsCoordinatorSigModal(false);
-            setIsClientSigModal(false);
-            setModalIsOpen(false);
-          }}>
-          Close
-        </Button>
-      </Modal>
       {/* <Form onSubmit={handleSubmit(onSubmit, onError)}> */}
       <form onSubmit={handleSubmit(onSubmit)}>
         <Row gutter={8}>
@@ -267,7 +188,8 @@ const EditForm = () => {
               <InputText
                 className="disabled"
                 disabled
-                id="clientName"
+                id="fileId"
+                defaultValue={consultForm._id}
                 {...register("fileId")}
               />
             </InputIndividual>
@@ -278,7 +200,7 @@ const EditForm = () => {
               </label>
               <InputText
                 id="clientName"
-                value={consultForm.clientName}
+                defaultValue={consultForm.clientName}
                 {...register("clientName")}
               />
             </InputIndividual>
@@ -291,7 +213,7 @@ const EditForm = () => {
                 <InputDate
                   id="DOB"
                   type="date"
-                  value={dayjs(consultForm.DOB).format("YYYY-MM-DD")}
+                  defaultValue={dayjs(consultForm.DOB).format("YYYY-MM-DD")}
                   {...register("DOB", { valueAsDate: true })}
                 />
               </div>
@@ -306,15 +228,12 @@ const EditForm = () => {
                 <label htmlFor="male">
                   {/* <span className="radioText">Male</span> */}
                   <InputRadio
-                    // {...register(
-                    //   "gender",
-                    // )}
                     type="radio"
                     name="gender"
                     value="Male"
                     id="male"
-                    checked={consultForm.gender === "Male"}
-                    // value={consultForm.gender}
+                    defaultChecked={consultForm.gender === "Male"}
+                    {...register("gender")}
                   />
                   <span className="radioSpot"> Male </span>
                   {/* <span className="radioSpot">Male</span> */}
@@ -322,14 +241,12 @@ const EditForm = () => {
                 <label htmlFor="female">
                   {/* Female */}
                   <InputRadio
-                    // {...register(
-                    //   "gender",
-                    // )}
                     type="radio"
                     name="gender"
                     value="Female"
                     id="female"
-                    checked={consultForm.gender === "Female"}
+                    defaultChecked={consultForm.gender === "Female"}
+                    {...register("gender")}
                   />
                   <span>Female</span>
                 </label>
@@ -337,11 +254,18 @@ const EditForm = () => {
             </InputIndividual>
 
             <InputIndividual>
-              <label htmlFor="phoneNumber">
+              <label htmlFor="phone">
                 <p>전화번호</p>
                 <p>Phone Number</p>
               </label>
-              <InputText id="phoneNumber" {...register("phoneNumber")} />
+              {/* value: phoneNumber -> phone 수정됨*/}
+              <InputText
+                type="text"
+                name="phone"
+                id="phone"
+                defaultValue={consultForm.phone}
+                {...register("phone")}
+              />
             </InputIndividual>
 
             <InputIndividual>
@@ -352,66 +276,56 @@ const EditForm = () => {
               <div className="radioButton">
                 <label htmlFor="single">
                   <InputRadio
-                    {...register(
-                      "marital",
-                      // , { required: true                   }
-                    )}
                     type="radio"
                     name="marital"
                     value="Single"
                     id="single"
+                    defaultChecked={consultForm.marital === "Single"}
+                    {...register("marital")}
                   />
                   <span>Single</span>
                 </label>
                 <label htmlFor="married">
                   <InputRadio
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
                     type="radio"
                     name="marital"
                     value="Married"
                     id="married"
+                    defaultChecked={consultForm.marital === "Married"}
+                    {...register("marital")}
                   />
                   <span>Married</span>
                 </label>
                 <label htmlFor="separated">
                   <InputRadio
-                    {...register(
-                      "separated",
-                      // , { required: true }
-                    )}
                     type="radio"
                     name="marital"
                     value="Separated"
                     id="separated"
+                    defaultChecked={consultForm.marital === "Separated"}
+                    {...register("marital")}
                   />
                   <span>Separated</span>
                 </label>
                 <label htmlFor="divored">
                   <InputRadio
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
                     type="radio"
                     name="marital"
                     value="Divored"
                     id="divored"
+                    defaultChecked={consultForm.marital === "Divored"}
+                    {...register("marital")}
                   />
                   <span>Divored</span>
                 </label>
                 <label htmlFor="widowed">
                   <InputRadio
-                    {...register(
-                      "marital",
-                      // , { required: true }
-                    )}
                     type="radio"
                     name="marital"
                     value="Widowed"
                     id="widowed"
+                    defaultChecked={consultForm.marital === "Widowed"}
+                    {...register("marital")}
                   />
                   <span>Widowed</span>
                 </label>
@@ -423,7 +337,14 @@ const EditForm = () => {
                 <p>주소 (우편번호)</p>
                 <p>Address (Postal Code)</p>
               </label>
-              <InputText id="address" {...register("address")} />
+              {/* value: address -> postalCode -> address수정됨 */}
+              <InputText
+                type="text"
+                name="address"
+                defaultValue={consultForm.address}
+                id="address"
+                {...register("address")}
+              />
             </InputIndividual>
 
             <InputIndividual>
@@ -431,16 +352,26 @@ const EditForm = () => {
                 <p>이메일 주소</p>
                 <p>Email Address</p>
               </label>
-              <InputText id="email" {...register("email")} />
+              <InputText
+                type="text"
+                name="email"
+                defaultValue={consultForm.email}
+                id="email"
+                {...register("email")}
+              />
             </InputIndividual>
           </Col>
           <Col xs={24} md={8}>
             <InputIndividual>
+              {/* 값 넣고 테스트 해보기. 현재 입력 저장된 값이 없는듯 */}
               <label htmlFor="intakeCoordinator">
                 <p>접수자</p>
                 <p>Intake Coordinator</p>
               </label>
               <InputText
+                type="text"
+                name="intakeCoordinator"
+                defaultValue={consultForm.intakeCoordinator}
                 id="intakeCoordinator"
                 {...register("intakeCoordinator")}
               />
@@ -454,8 +385,9 @@ const EditForm = () => {
                 <InputTime
                   id="intakeStartTime"
                   type="time"
+                  // defaultValue={dayjs(consultForm.intakeStartTime).format("HH:mm")}
+                  defaultValue={consultForm.intakeStartTime}
                   {...register("intakeStartTime")}
-                  // {...register("intakeStartTime", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
@@ -469,8 +401,8 @@ const EditForm = () => {
                 <InputTime
                   id="intakeEndTime"
                   type="time"
+                  defaultValue={consultForm.intakeEndTime}
                   {...register("intakeEndTime")}
-                  // {...register("intakeEndTime", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
@@ -491,6 +423,7 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="Citizen"
                     id="citizen"
+                    defaultChecked={consultForm.immigrationStatus === "Citizen"}
                   />
                   <span>Citizen</span>
                 </label>
@@ -504,6 +437,7 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="PR"
                     id="pr"
+                    defaultChecked={consultForm.immigrationStatus === "PR"}
                   />
                   <span>PR</span>
                 </label>
@@ -517,6 +451,9 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="TemporaryWorker"
                     id="temporaryWorker"
+                    defaultChecked={
+                      consultForm.immigrationStatus === "TemporaryWorker"
+                    }
                   />
                   <span>TemporaryWorker</span>
                 </label>
@@ -530,6 +467,7 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="Student"
                     id="student"
+                    defaultChecked={consultForm.immigrationStatus === "Student"}
                   />
                   <span>Student</span>
                 </label>
@@ -543,6 +481,7 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="Visitor"
                     id="visitor"
+                    defaultChecked={consultForm.immigrationStatus === "Visitor"}
                   />
                   <span>Visitor</span>
                 </label>
@@ -556,6 +495,7 @@ const EditForm = () => {
                     name="immigrationStatus"
                     value="Refugee"
                     id="refugee"
+                    defaultChecked={consultForm.immigrationStatus === "Refugee"}
                   />
                   <span>Refugee</span>
                 </label>
@@ -571,6 +511,9 @@ const EditForm = () => {
                 <InputDate
                   id="canadaArrivalDate"
                   type="date"
+                  defaultValue={dayjs(consultForm.canadaArrivalDate).format(
+                    "YYYY-MM-DD",
+                  )}
                   {...register("canadaArrivalDate", { valueAsDate: true })}
                 />
               </div>
@@ -581,7 +524,13 @@ const EditForm = () => {
                 <p>직업</p>
                 <p>Occupation</p>
               </label>
-              <InputText id="occupation" {...register("occupation")} />
+              <InputText
+                type="text"
+                name="occupation"
+                id="occupation"
+                defaultValue={consultForm.occupation}
+                {...register("occupation")}
+              />
             </InputIndividual>
 
             <InputIndividual>
@@ -589,7 +538,11 @@ const EditForm = () => {
                 <p>학력</p>
                 <p>Education</p>
               </label>
-              <InputText id="education" {...register("education")} />
+              <InputText
+                id="education"
+                defaultValue={consultForm.education}
+                {...register("education")}
+              />
             </InputIndividual>
 
             <InputIndividual>
@@ -597,7 +550,11 @@ const EditForm = () => {
                 <p>영어능력</p>
                 <p>English Level</p>
               </label>
-              <InputText id="englishLevel" {...register("englishLevel")} />
+              <InputText
+                id="englishLevel"
+                defaultValue={consultForm.englishLevel}
+                {...register("englishLevel")}
+              />
             </InputIndividual>
           </Col>
           <Col xs={24} md={8}>
@@ -606,29 +563,24 @@ const EditForm = () => {
                 <p>담당 상담사</p>
                 <p>Counselor</p>
               </label>
-              <InputText id="counselor" {...register("counselor")} />
+              <InputText
+                id="counselor"
+                defaultValue={consultForm.counselor}
+                {...register("counselor")}
+              />
             </InputIndividual>
             <InputIndividual>
               <label htmlFor="reasonForVisit">
                 <p>방문이유</p>
                 <p>Reason For Service</p>
               </label>
-              <InputText id="reasonForVisit" {...register("reasonForVisit")} />
+              <InputText
+                id="reasonForVisit"
+                defaultValue={consultForm.reasonForVisit}
+                {...register("reasonForVisit")}
+              />
             </InputIndividual>
 
-            <InputIndividual>
-              <label htmlFor="nextApptDateTime">
-                <p>다음 상담 날짜&시간</p>
-                <p>Next Appointment Date & Time</p>
-              </label>
-              <div className="nextApptDateTime">
-                <InputDateAndTime
-                  id="nextApptDateTime"
-                  type="datetime-local"
-                  {...register("nextApptDateTime", { valueAsDate: true })}
-                />
-              </div>
-            </InputIndividual>
             <InputIndividual>
               <label htmlFor="registerDateAndTime">
                 <p>접수 날짜&시간</p>
@@ -638,24 +590,29 @@ const EditForm = () => {
                 <InputDateAndTime
                   id="registerDateAndTime"
                   type="datetime-local"
+                  defaultValue={dayjs(consultForm.registerDateAndTime).format(
+                    "YYYY-MM-DDTHH:mm",
+                  )}
                   {...register("registerDateAndTime", { valueAsDate: true })}
                 />
               </div>
             </InputIndividual>
-
-            {/* <InputIndividual>
-              <label htmlFor="intakeTime">
-                <p>접수시간</p>
-                <p>Intake Time</p>
+            <InputIndividual>
+              <label htmlFor="nextApptDateTime">
+                <p>다음 상담 날짜&시간</p>
+                <p>Next Appointment Date & Time</p>
               </label>
-              <div className="intakeTime">
-                <InputTime
-                  id="intakeTime"
-                  type="time"
-                  {...register("intakeTime", { valueAsDate: true })}
+              <div className="nextApptDateTime">
+                <InputDateAndTime
+                  id="nextApptDateTime"
+                  type="datetime-local"
+                  defaultValue={dayjs(consultForm.nextApptDateTime).format(
+                    "YYYY-MM-DDTHH:mm",
+                  )}
+                  {...register("nextApptDateTime", { valueAsDate: true })}
                 />
               </div>
-            </InputIndividual> */}
+            </InputIndividual>
 
             <InputIndividual>
               <label htmlFor="servicePath">
@@ -665,6 +622,7 @@ const EditForm = () => {
               <TextArea
                 rows="4"
                 id="servicePath"
+                defaultValue={consultForm.servicePath}
                 {...register("servicePath")}
               />
             </InputIndividual>
@@ -674,7 +632,7 @@ const EditForm = () => {
                 <p>담당자 메모</p>
                 <p>Coordinator's Note</p>
               </label>
-              <TextArea rows="4" id="memo" {...register("memo")} />
+              <TextArea rows="4" id="memo" defaultValue={consultForm.memo} />
             </InputIndividual>
             <InputIndividual>
               <label htmlFor="file">
@@ -682,109 +640,17 @@ const EditForm = () => {
                 <p>file</p>
               </label>
               <InputFile
-                ref={register}
                 id="file"
                 name="attachment"
                 onChange={onChangeFile}
                 onInput={onInputFile}
-                {...register("file")}
                 type="file"
+                {...register("file")}
               />
             </InputIndividual>
           </Col>
         </Row>
         <Divider />
-
-        <div className="agreement">
-          <p>개인정보 수집이용 제공동의서</p>
-          <p>Service Agreement</p>
-          <p>
-            나는 내 개인정보가 기밀사항임을 알고 있습니다. 그러나,
-            한인사회복지센터(KSSC)에서 제공하는 서비스를 이용하기 위해 나의
-            개인정보가 한인복지센터의 상담사들과 관련 기관들, 그리고 관련 펀딩
-            정부기관에 한하여 사용될 수 있는 것을 충분히 숙지하였으며, 개인정보
-            수집, 이용, 제공하는 것에 동의합니다.
-          </p>
-          <p>
-            I am aware that my personal information is confidential, However, I
-            have been advised that some, or all of this information provided is
-            requried for use by only authorized KSSC staff, select community
-            service agencies, and government funders.
-          </p>
-        </div>
-        <Divider />
-
-        <div
-          // className="signature"
-          // css={css`
-          className={css`
-            display: flex;
-
-            justify-content: space-between;
-          `}>
-          <div
-            className={css`
-              width: 50%;
-              display: flex;
-            `}>
-            <div>
-              <p>접수자 서명</p>
-              <p>Intake Coordinator Signature </p>
-              <Button
-                onClick={() => {
-                  setModalIsOpen(true);
-                  setIsCoordinatorSigModal(true);
-                }}>
-                Click to Sign
-              </Button>
-            </div>
-
-            <div
-              className={css`
-                width: 80%;
-              `}>
-              {trimmedCoordinatorSigDataUrl && (
-                <img
-                  className={css`
-                    width: 100%;
-                  `}
-                  src={trimmedCoordinatorSigDataUrl}
-                  alt="Coordinator Signature"
-                />
-              )}
-            </div>
-          </div>
-
-          <div
-            className={css`
-              width: 50%;
-            `}>
-            <p>내담자 서명</p>
-            <p>Client Signature </p>
-
-            <Button
-              onClick={() => {
-                setModalIsOpen(true);
-                setIsClientSigModal(true);
-              }}>
-              Click to Sign
-            </Button>
-            <div
-              className={css`
-                width: 80%;
-              `}>
-              {trimmedClientSigDataUrl && (
-                <img
-                  className={css`
-                    width: 100%;
-                  `}
-                  src={trimmedClientSigDataUrl}
-                  alt="Coordinator Signature"
-                />
-              )}
-            </div>
-          </div>
-        </div>
 
         <ButtonPrimary
           className="submit-btn"
@@ -792,7 +658,7 @@ const EditForm = () => {
           onClick={() => {
             console.log("click");
           }}>
-          Submit Form
+          Save Form
         </ButtonPrimary>
       </form>
     </Container>

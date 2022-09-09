@@ -12,6 +12,22 @@ const createConsultForm = async (consultFormData, token) => {
   return response.data;
 };
 
+const editConsultForm = async (consultFormData, token) => {
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  console.log(consultFormData);
+  const response = await axios.put(
+    `${API_URL}/${consultFormData._id}`,
+    consultFormData,
+    config,
+  );
+  return response.data;
+};
+
 const getForms = async () => {
   const response = await axios.get(API_URL);
   return response.data;
@@ -56,6 +72,7 @@ const postFile = async (fileFormData, token) => {
 
 const consultFormService = {
   createConsultForm,
+  editConsultForm,
   postFile,
   getForms,
   deleteForm,

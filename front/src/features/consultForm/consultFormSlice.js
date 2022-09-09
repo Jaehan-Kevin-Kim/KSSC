@@ -29,6 +29,22 @@ export const createConsultForm = createAsyncThunk(
   },
 );
 
+export const editConsultForm = createAsyncThunk(
+  "consultForms/edit",
+  async (consultFormData, thunkAPI) => {
+    try {
+      console.log(consultFormData);
+      const token = thunkAPI.getState().auth.user.token;
+      return await consultFormService.editConsultForm(consultFormData, token);
+    } catch (error) {
+      console.log("error for createConsultForm: ", error);
+      const message =
+        error.response?.data?.message || error.message || error.toString();
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const getFormById = createAsyncThunk(
   "consultForms/getFormById",
   async (formId, thunkAPI) => {

@@ -3,6 +3,7 @@ const ConsultForm = require("../models/consultFormModel");
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+const User = require("../models/userModel");
 
 try {
   fs.accessSync("uploads");
@@ -14,7 +15,9 @@ try {
 const postForm = async (req, res) => {
   const bodyValue = req.body;
   try {
+    // User.findOne({})
     const consultForm = await ConsultForm.create(bodyValue);
+
     res.status(200).json(consultForm);
   } catch (error) {
     console.log(error);
@@ -54,7 +57,7 @@ const updateForm = async (req, res) => {
       id,
       req.body,
       {
-        new: true,
+        new: false,
       },
     );
     res.status(200).json(updatedConsultForm);
